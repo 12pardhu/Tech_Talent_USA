@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
@@ -14,6 +14,7 @@ ROOT = Path(__file__).parent
 DATABASE_URL = os.getenv("DATABASE_URL")
 SQLITE_PATH = os.getenv("DATABASE_PATH", str(ROOT / "local_enquiries.db"))
 POOL = None
+SUBMISSION_ATTEMPTS = {}
 logger = logging.getLogger("tech_talent_usa")
 
 SCHEMA = """
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS enquiries (
     location VARCHAR(160) NOT NULL DEFAULT '',
     positions INTEGER NOT NULL CHECK (positions > 0),
     message TEXT NOT NULL DEFAULT '',
+    consent BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_enquiries_created_at ON enquiries (created_at DESC);
@@ -63,6 +65,7 @@ def init_sqlite():
             ("resume_filename", "TEXT NOT NULL DEFAULT ''"),
             ("resume_content_type", "TEXT NOT NULL DEFAULT ''"),
             ("resume_data", "BLOB"),
+            ("consent", "INTEGER NOT NULL DEFAULT 0"),
         ):
             if column not in existing:
                 conn.execute(f"ALTER TABLE enquiries ADD COLUMN {column} {definition}")
@@ -87,8 +90,9 @@ async def lifespan(app: FastAPI):
             conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_filename VARCHAR(255) NOT NULL DEFAULT ''")
             conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_content_type VARCHAR(120) NOT NULL DEFAULT ''")
             conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_data BYTEA")
+            conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS consent BOOLEAN NOT NULL DEFAULT FALSE")
             conn.commit()
-    elif not os.getenv("RENDER"):
+    else:
         init_sqlite()
     yield
     if POOL:
@@ -96,6 +100,15 @@ async def lifespan(app: FastAPI):
         POOL = None
 
 app = FastAPI(title="Tech Talent USA", lifespan=lifespan)
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["X-Frame-Options"] = "DENY"
+    return response
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 @app.get("/about", response_class=HTMLResponse)
@@ -125,9 +138,9 @@ def home():
 @app.get("/health")
 def health():
     return {
-        "status": "ok" if (POOL is not None or not os.getenv("RENDER")) else "degraded",
+        "status": "ok",
         "service": "Tech Talent USA",
-        "database": "connected" if POOL is not None else ("local" if not os.getenv("RENDER") else "not_configured"),
+        "database": "postgres" if POOL is not None else "sqlite_preview_store",
     }
 
 def deliver_notification(payload: dict):
@@ -219,6 +232,7 @@ def deliver_notification(payload: dict):
 
 @app.post("/api/enquiries", status_code=201)
 async def submit_enquiry(
+    request: Request,
     background_tasks: BackgroundTasks,
     name: str = Form(..., min_length=2, max_length=120),
     email: str = Form(..., max_length=254),
@@ -228,11 +242,26 @@ async def submit_enquiry(
     location: str = Form("", max_length=160),
     skills: str = Form(..., min_length=2, max_length=1000),
     message: str = Form("", max_length=3000),
+    consent: bool = Form(False),
+    website: str = Form("", max_length=300),
     resume: Optional[UploadFile] = File(None),
 ):
     import base64
     import re
 
+    if website.strip():
+        raise HTTPException(status_code=400, detail="Unable to process this submission.")
+    if not consent:
+        raise HTTPException(status_code=422, detail="Please confirm the privacy notice before submitting.")
+    client_ip = request.client.host if request.client else "unknown"
+    now = __import__("time").time()
+    recent = [stamp for stamp in SUBMISSION_ATTEMPTS.get(client_ip, []) if now - stamp < 600]
+    if len(recent) >= 5:
+        raise HTTPException(status_code=429, detail="Too many submissions. Please wait a few minutes and try again.")
+    recent.append(now)
+    SUBMISSION_ATTEMPTS[client_ip] = recent
+    if len(SUBMISSION_ATTEMPTS) > 2000:
+        SUBMISSION_ATTEMPTS.clear()
     if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email.strip()):
         raise HTTPException(status_code=422, detail="Please enter a valid email address.")
 
@@ -266,6 +295,7 @@ async def submit_enquiry(
         "skills": skills.strip(),
         "message": message.strip(),
         "resume_filename": resume_filename,
+        "consent": consent,
     }
 
     if POOL is not None:
@@ -273,34 +303,32 @@ async def submit_enquiry(
             row = conn.execute(
                 """INSERT INTO enquiries
                 (company, contact, email, phone, job_title, skills, experience, location,
-                 positions, message, whatsapp_number, resume_filename, resume_content_type, resume_data)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                 positions, message, whatsapp_number, resume_filename, resume_content_type, resume_data, consent)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
                 (
                     "Candidate profile", values["name"], values["email"], values["phone"],
                     "Candidate registration", values["skills"], values["experience"],
                     values["location"], 1, values["message"], values["whatsapp_number"],
-                    resume_filename, resume_content_type, resume_bytes,
+                    resume_filename, resume_content_type, resume_bytes, consent,
                 ),
             ).fetchone()
             conn.commit()
             enquiry_id = row[0]
-    elif not os.getenv("RENDER"):
+    else:
         with sqlite3.connect(SQLITE_PATH) as conn:
             cur = conn.execute(
                 """INSERT INTO enquiries
                 (company, contact, email, phone, job_title, skills, experience, location,
-                 positions, message, whatsapp_number, resume_filename, resume_content_type, resume_data)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                 positions, message, whatsapp_number, resume_filename, resume_content_type, resume_data, consent)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     "Candidate profile", values["name"], values["email"], values["phone"],
                     "Candidate registration", values["skills"], values["experience"],
                     values["location"], 1, values["message"], values["whatsapp_number"],
-                    resume_filename, resume_content_type, resume_bytes,
+                    resume_filename, resume_content_type, resume_bytes, int(consent),
                 ),
             )
             enquiry_id = cur.lastrowid
-    else:
-        raise HTTPException(status_code=503, detail="Profile submission is temporarily unavailable. Please try again later.")
 
     notification = dict(values)
     if resume_bytes:
