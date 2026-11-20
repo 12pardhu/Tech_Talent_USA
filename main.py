@@ -118,12 +118,10 @@ def health():
     }
 
 def deliver_notification(payload: dict):
-    """Send enquiry notifications through Resend's HTTPS API.
-
-    Render's free web services cannot send outbound SMTP, so this deliberately
-    avoids SMTP and uses HTTPS instead.
-    """
+    """Send a formatted hiring enquiry receipt through Resend's HTTPS API."""
+    import html
     import json
+    from datetime import datetime, timezone
     from urllib.error import HTTPError, URLError
     from urllib.request import Request, urlopen
 
@@ -136,17 +134,87 @@ def deliver_notification(payload: dict):
         logger.error("Resend notification skipped: CONTACT_EMAIL is not configured")
         return
 
-    sender = os.getenv("RESEND_FROM", "Tech Talent USA <onboarding@resend.dev>")
-    lines = [
-        "A new hiring enquiry was submitted through the Tech Talent USA website.",
+    labels = [
+        ("company", "Company"),
+        ("contact", "Contact Person"),
+        ("email", "Email Address"),
+        ("phone", "Phone Number"),
+        ("job_title", "Position / Job Title"),
+        ("skills", "Required Skills"),
+        ("experience", "Experience"),
+        ("location", "Job Location"),
+        ("positions", "Number of Positions"),
+        ("message", "Additional Details"),
+    ]
+    rows = []
+    text_lines = [
+        "TECH TALENT USA",
+        "NEW HIRING ENQUIRY",
+        "Enquiry details submitted through the website",
         "",
     ]
-    lines.extend(f"{key.replace('_', ' ').title()}: {value}" for key, value in payload.items())
+    for key, label in labels:
+        value = str(payload.get(key) or "Not provided")
+        safe_label = html.escape(label)
+        safe_value = html.escape(value).replace("\n", "<br>")
+        rows.append(
+            f'<tr><td style="padding:12px 14px;border-bottom:1px solid #e8edf3;'
+            f'color:#526174;font-size:13px;font-weight:600;width:36%;vertical-align:top;">'
+            f'{safe_label}</td><td style="padding:12px 14px;border-bottom:1px solid #e8edf3;'
+            f'color:#172033;font-size:14px;vertical-align:top;">{safe_value}</td></tr>'
+        )
+        text_lines.append(f"{label}: {value}")
+
+    submitted_at = datetime.now(timezone.utc).strftime("%d %b %Y, %I:%M %p UTC")
+    safe_submitted_at = html.escape(submitted_at)
+    job_title = str(payload.get("job_title") or "Website enquiry")
+    safe_job_title = html.escape(job_title)
+    html_body = f"""\
+<!doctype html>
+<html>
+  <body style="margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172033;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e5eaf1;border-radius:12px;overflow:hidden;">
+      <tr>
+        <td style="padding:26px 30px;background:#10243a;color:#ffffff;">
+          <div style="font-size:12px;letter-spacing:2px;font-weight:700;color:#b9d4f2;">TECH TALENT USA</div>
+          <div style="font-size:24px;font-weight:700;margin-top:9px;">New Hiring Enquiry</div>
+          <div style="font-size:13px;color:#d4dfeb;margin-top:7px;">A new request has been submitted through your website.</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 30px 10px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8fb;border:1px solid #e8edf3;border-radius:8px;">
+            <tr>
+              <td style="padding:14px 16px;">
+                <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Enquiry summary</div>
+                <div style="font-size:17px;font-weight:700;color:#10243a;margin-top:5px;">{safe_job_title}</div>
+                <div style="font-size:12px;color:#64748b;margin-top:6px;">Received: {safe_submitted_at}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:18px 30px 28px;">
+          <div style="font-size:15px;font-weight:700;color:#10243a;margin-bottom:10px;">Enquiry details</div>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e8edf3;border-radius:8px;border-collapse:separate;border-spacing:0;">
+            {''.join(rows)}
+          </table>
+          <p style="font-size:12px;line-height:1.6;color:#7b8797;margin:20px 0 0;">This is an automated notification from the Tech Talent USA website. You can reply directly to this email to contact the person who submitted the enquiry.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:16px 30px;background:#f6f8fb;border-top:1px solid #e8edf3;font-size:11px;color:#7b8797;">Tech Talent USA · Hiring Enquiry Notification</td>
+      </tr>
+    </table>
+  </body>
+</html>"""
     body = {
-        "from": sender,
+        "from": os.getenv("RESEND_FROM", "Tech Talent USA <onboarding@resend.dev>"),
         "to": [recipient],
-        "subject": f"New hiring enquiry: {payload.get('job_title', 'Website enquiry')}",
-        "text": "\\n".join(lines),
+        "subject": f"New hiring enquiry: {job_title}",
+        "text": "\n".join(text_lines),
+        "html": html_body,
     }
     reply_to = payload.get("email")
     if reply_to:
@@ -167,7 +235,6 @@ def deliver_notification(payload: dict):
             result = json.loads(response.read().decode("utf-8"))
             logger.info("Resend accepted hiring enquiry notification; message_id=%s", result.get("id"))
     except HTTPError as exc:
-        # Log the provider's response for diagnosis, never the API key.
         detail = exc.read().decode("utf-8", errors="replace")[:1000]
         logger.error("Resend API rejected hiring enquiry notification: status=%s response=%s", exc.code, detail)
     except (URLError, TimeoutError, OSError):
