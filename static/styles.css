@@ -249,3 +249,25 @@ a:focus-visible,button:focus-visible{outline:3px solid #78a8f0;outline-offset:3p
 .phone-field>span{padding:0 0 0 12px;color:#42536a;font:600 12px "DM Sans";white-space:nowrap}
 .phone-field input.form-phone,.phone-field input{border:0!important;box-shadow:none!important;margin:0!important;min-width:0}
 .phone-field input:focus{outline:none}
+
+/* Client-provided career overview section */
+.next-step{background:#f5f8fc}
+.next-step-intro{max-width:760px;margin:18px 0 42px}
+.next-step-intro h2{font-size:clamp(34px,4.5vw,52px);margin:18px 0}
+.next-step-intro>p:not(.lead){max-width:720px;color:var(--muted);font-size:14px;line-height:1.9}
+.next-step-content{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:stretch}
+.next-step-list,.next-step-cta{background:#fff;border:1px solid #e3eaf3;padding:30px}
+.next-step-list h3,.next-step-cta h3{font:700 21px Manrope;color:var(--navy);margin:0 0 22px}
+.next-step-list ol{list-style:none;padding:0;margin:0;display:grid;gap:18px}
+.next-step-list li{display:flex;align-items:flex-start;gap:14px;color:var(--ink);font-size:13px;line-height:1.6}
+.next-step-list li>span{flex:0 0 32px;height:32px;display:grid;place-items:center;border-radius:50%;background:var(--sky);color:var(--blue);font:700 11px Manrope}
+.next-step-cta{background:var(--navy);color:white}
+.next-step-cta .section-label{color:var(--mint);margin-bottom:18px}
+.next-step-cta h3{color:#fff;margin-bottom:12px}
+.next-step-cta>p{color:#c3d0e0;font-size:13px;line-height:1.8;margin-bottom:24px}
+.next-step-contact{display:grid;gap:16px;margin-top:28px;padding-top:22px;border-top:1px solid #ffffff30}
+.next-step-contact small,.next-step-contact a{display:block}
+.next-step-contact small{font-size:9px;letter-spacing:1.5px;color:#9eb2ca;margin-bottom:5px}
+.next-step-contact a{font-size:12px;color:#fff;overflow-wrap:anywhere}
+.next-step-closing{margin:26px 0 0;color:var(--navy);font:700 18px Manrope}
+@media(max-width:650px){.next-step-content{grid-template-columns:1fr}.next-step-list,.next-step-cta{padding:23px}.next-step-intro h2{font-size:36px}}
