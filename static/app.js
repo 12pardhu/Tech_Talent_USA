@@ -20,3 +20,7 @@ if(form){
 }
 const reveal=document.querySelectorAll(".section,.stats,.hero-copy,.hero-art");
 if("IntersectionObserver" in window&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("is-visible");observer.unobserve(e.target);}}),{threshold:.12});reveal.forEach(el=>{el.classList.add("reveal-ready");observer.observe(el);});}else reveal.forEach(el=>el.classList.add("is-visible"));
+
+
+// Subtle pointer parallax for the 3D hero scene (disabled on touch/reduced-motion).
+(()=>{const scene=document.getElementById("hero-scene");if(!scene||!("matchMedia" in window)||window.matchMedia("(prefers-reduced-motion: reduce)").matches||!("PointerEvent" in window))return;const fine=window.matchMedia("(pointer:fine)").matches;if(!fine)return;const reset=()=>{scene.style.transform="";};scene.addEventListener("pointermove",e=>{const r=scene.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;scene.style.transform=`rotateX(${-y*3}deg) rotateY(${x*4}deg)`;});scene.addEventListener("pointerleave",reset);})();
