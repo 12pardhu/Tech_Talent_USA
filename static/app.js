@@ -22,3 +22,26 @@ if(form){
 }
 const reveal=document.querySelectorAll(".section,.stats,.hero-copy,.hero-art");
 if("IntersectionObserver" in window&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("is-visible");observer.unobserve(e.target);}}),{threshold:.12});reveal.forEach(el=>{el.classList.add("reveal-ready");observer.observe(el);});}else reveal.forEach(el=>el.classList.add("is-visible"));
+
+
+// Polished navigation and lightweight page interactions.
+(function(){
+ const header=document.querySelector(".header"),progress=document.createElement("div");
+ progress.id="site-scroll-progress";progress.setAttribute("aria-hidden","true");document.body.append(progress);
+ const quick=document.createElement("a");quick.id="quick-profile-link";quick.href="/contact";quick.innerHTML='Share your profile <span aria-hidden="true">↗</span>';quick.setAttribute("aria-label","Go to candidate profile registration");document.body.append(quick);
+ const links=[...document.querySelectorAll('#site-nav a[href^="/"]')];
+ const sections=[...document.querySelectorAll("main section[id]")];
+ let ticking=false;
+ const update=()=>{
+  const max=document.documentElement.scrollHeight-window.innerHeight;
+  const y=window.scrollY;
+  progress.style.width=(max>0?Math.min(100,y/max*100):0)+"%";
+  header?.classList.toggle("is-scrolled",y>12);
+  quick.classList.toggle("is-visible",y>420);
+  const current=sections.filter(s=>s.getBoundingClientRect().top<160).at(-1);
+  links.forEach(a=>{const href=a.getAttribute("href");const active=current&&((href==="/about"&&current.id==="about")||(href==="/services"&&current.id==="services")||(href==="/how-we-work"&&current.id==="process")||(href==="/contact"&&current.id==="contact"));if(active)a.setAttribute("aria-current","location");else a.removeAttribute("aria-current");});
+  ticking=false;
+ };
+ window.addEventListener("scroll",()=>{if(!ticking){requestAnimationFrame(update);ticking=true;}},{passive:true});
+ window.addEventListener("resize",update,{passive:true});update();
+})();
