@@ -117,7 +117,7 @@ def about_page():
 
 @app.get("/services", response_class=HTMLResponse)
 def services_page():
-    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    return (ROOT / "static" / "career-areas.html").read_text(encoding="utf-8")
 
 @app.get("/how-we-work", response_class=HTMLResponse)
 def process_page():
