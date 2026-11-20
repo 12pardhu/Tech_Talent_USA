@@ -92,7 +92,7 @@ async def lifespan(app: FastAPI):
             conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_data BYTEA")
             conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS consent BOOLEAN NOT NULL DEFAULT FALSE")
             conn.commit()
-    elif not os.getenv("RENDER"):
+    else:
         init_sqlite()
     yield
     if POOL:
@@ -127,6 +127,10 @@ def process_page():
 def contact_page():
     return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
 
+@app.get("/faq", response_class=HTMLResponse)
+def faq_page():
+    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy_page():
     return (ROOT / "static" / "privacy.html").read_text(encoding="utf-8")
@@ -140,7 +144,7 @@ def health():
     return {
         "status": "ok" if (POOL is not None or not os.getenv("RENDER")) else "degraded",
         "service": "Tech Talent USA",
-        "database": "connected" if POOL is not None else ("local" if not os.getenv("RENDER") else "not_configured"),
+        "database": "connected" if POOL is not None else ("local_preview_store" if POOL is None else "connected"),
     }
 
 def deliver_notification(payload: dict):
@@ -314,7 +318,7 @@ async def submit_enquiry(
             ).fetchone()
             conn.commit()
             enquiry_id = row[0]
-    elif not os.getenv("RENDER"):
+    else:
         with sqlite3.connect(SQLITE_PATH) as conn:
             cur = conn.execute(
                 """INSERT INTO enquiries
