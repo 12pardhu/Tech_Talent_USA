@@ -113,11 +113,11 @@ app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 @app.get("/about", response_class=HTMLResponse)
 def about_page():
-    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    return (ROOT / "static" / "about.html").read_text(encoding="utf-8")
 
 @app.get("/services", response_class=HTMLResponse)
 def services_page():
-    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    return (ROOT / "static" / "career-areas.html").read_text(encoding="utf-8")
 
 @app.get("/how-we-work", response_class=HTMLResponse)
 def process_page():
