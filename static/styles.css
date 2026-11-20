@@ -154,3 +154,17 @@ footer{font-size:13px}
 .profile-hero-with-photo{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(230px,.6fr);align-items:center;gap:48px}.profile-hero-copy{max-width:720px}.profile-portrait{justify-self:center;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}.profile-portrait img{width:210px;height:210px;object-fit:cover;object-position:center 28%;border-radius:18px;border:6px solid #fff;box-shadow:0 18px 45px #10274624}.profile-portrait strong{font:800 22px Manrope,sans-serif;color:var(--navy)}.profile-portrait span{font-size:12px;color:var(--muted)}.career-page-hero{padding:74px 9% 58px;background:linear-gradient(120deg,#f5f9ff,#fff 65%,#edf4ff)}.career-page-hero h1{font:800 clamp(38px,4.5vw,58px)/1.1 Manrope,sans-serif;color:var(--navy);letter-spacing:-2px;margin:12px 0}.career-page-hero h1 em{font-style:normal;color:var(--blue)}.career-page-hero p{max-width:760px;color:var(--muted);font-size:16px;line-height:1.8}.career-page-section{padding:68px 9%}.career-page-section .service-grid{margin-top:28px}@media(max-width:750px){.profile-hero-with-photo{grid-template-columns:1fr;gap:28px}.profile-portrait img{width:180px;height:180px}.career-page-hero,.career-page-section{padding-left:6%;padding-right:6%}}
 
 .company-logo svg{display:block;width:auto;max-width:150px;height:34px;overflow:visible}.company-logo svg text{dominant-baseline:auto}@media(max-width:650px){.company-logo svg{max-width:120px;height:29px}}
+
+
+/* Four-step candidate registration progress */
+.form-step{padding:18px 0 20px;border-top:1px solid var(--line)}
+.form-step-heading{display:flex;align-items:center;gap:12px;margin-bottom:15px}
+.form-step-heading>span{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--sky);color:var(--blue);font:700 11px Manrope,sans-serif}
+.form-step-heading>div{flex:1}
+.form-step-heading h4{font:700 14px Manrope,sans-serif;color:var(--navy);margin:0 0 3px}
+.form-step-heading p{font-size:11px;color:var(--muted);margin:0}
+.form-step-heading>b{font:700 11px Manrope,sans-serif;color:var(--muted)}
+.form-step.is-complete .form-step-heading>span{background:#e4f7ef;color:#16865f}
+.form-step.is-complete .form-step-heading>b{color:#16865f}
+.form-progress{margin:2px 0 12px}
+@media(max-width:650px){.form-step{padding:15px 0 17px}.form-step-heading{gap:9px}.form-step-heading h4{font-size:13px}}
