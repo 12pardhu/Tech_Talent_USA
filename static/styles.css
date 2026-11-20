@@ -136,3 +136,17 @@ footer{font-size:13px}
 .profile-contact .button{white-space:nowrap}
 @media(max-width:750px){.profile-hero{padding:56px 6% 42px}.profile-section{padding:62px 6%}.profile-metrics{grid-template-columns:1fr 1fr;padding:18px 6%;gap:8px}.profile-metrics div:nth-child(2){border:0}.profile-grid{grid-template-columns:1fr;gap:10px}.profile-cards{grid-template-columns:1fr}.profile-contact{padding:44px 6%;display:block}.profile-contact .button{margin-top:22px}.profile-section h2{font-size:33px}}
 @media(max-width:480px){.profile-skills{grid-template-columns:1fr}.profile-role{align-items:flex-start;flex-direction:column}.profile-contact h2{font-size:28px}}
+
+
+/* Career Areas: illustrative U.S. employer logo showcase */
+.company-showcase{margin-top:52px;padding:34px 30px 25px;background:#f5f8fc;border:1px solid #e5edf7;border-radius:12px}
+.company-showcase-heading{text-align:center;max-width:720px;margin:0 auto 25px}
+.company-showcase-heading h3{font:800 clamp(21px,2.4vw,28px)/1.25 Manrope,sans-serif;color:var(--navy);margin:10px 0}
+.company-showcase-heading p{font-size:14px;line-height:1.7;color:var(--muted);margin:0}
+.company-logo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.company-logo{min-height:94px;padding:17px 12px;background:#fff;border:1px solid #e5ebf3;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.company-logo img{display:block;width:auto;max-width:130px;height:30px;object-fit:contain}
+.company-logo span{font-size:12px;font-weight:700;color:#30435e}
+.company-disclaimer{font-size:10px!important;line-height:1.6!important;color:#7b8797!important;text-align:center;max-width:850px;margin:19px auto 0!important}
+@media(min-width:900px){.company-logo-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.company-showcase{margin-top:35px;padding:25px 14px 19px}.company-logo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.company-logo{min-height:84px;padding:13px 8px}.company-logo img{max-width:112px;height:26px}.company-logo span{font-size:11px}}
