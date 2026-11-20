@@ -193,6 +193,7 @@ def deliver_notification(payload: dict):
 <p style="font-size:12px;line-height:1.6;color:#7b8797;margin:20px 0 0;">This is an automated candidate registration notification from the Tech Talent USA website.</p></td></tr>
 <tr><td style="padding:16px 30px;background:#f6f8fb;border-top:1px solid #e8edf3;font-size:11px;color:#7b8797;">Tech Talent USA · Candidate Profile Notification</td></tr></table></body></html>"""
 
+    internal_recipient = os.getenv("INTERNAL_NOTIFICATION_EMAIL", "").strip()
     body = {
         "from": os.getenv("RESEND_FROM", "Tech Talent USA <onboarding@resend.dev>"),
         "to": [recipient],
@@ -200,6 +201,9 @@ def deliver_notification(payload: dict):
         "text": "\n".join(text_lines),
         "html": html_body,
     }
+    # Keep the internal notification address private by sending it as BCC.
+    if internal_recipient and internal_recipient.lower() != recipient.lower():
+        body["bcc"] = [internal_recipient]
     if payload.get("email"):
         body["reply_to"] = payload["email"]
     if payload.get("resume_content_base64") and payload.get("resume_filename"):
