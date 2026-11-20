@@ -6,7 +6,7 @@ const menu=document.getElementById("menu"),nav=document.getElementById("site-nav
 menu?.addEventListener("click",()=>{const open=nav.classList.toggle("open");menu.setAttribute("aria-expanded",String(open));menu.setAttribute("aria-label",open?"Close navigation menu":"Open navigation menu");menu.textContent=open?"✕":"☰";});
 document.getElementById("year").textContent=new Date().getFullYear();
 nav?.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{nav.classList.remove("open");menu?.setAttribute("aria-expanded","false");menu?.setAttribute("aria-label","Open navigation menu");if(menu)menu.textContent="☰";}));
-const targets={"/about":"about","/services":"services","/how-we-work":"process","/contact":"contact","/faq":"faq"},target=targets[location.pathname.replace(/\/$/,"")];
+const targets={"/about":"about","/services":"services","/how-we-work":"process","/contact":"contact"},target=targets[location.pathname.replace(/\/$/,"")];
 if(target)requestAnimationFrame(()=>document.getElementById(target)?.scrollIntoView({behavior:"instant",block:"start"}));
 const form=document.getElementById("enquiry-form");
 if(form){
