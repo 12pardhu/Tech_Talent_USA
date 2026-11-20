@@ -33,3 +33,49 @@ nav a:focus-visible,.button:focus-visible,.text-link:focus-visible,.under-link:f
 .quick-contact{position:fixed;right:22px;bottom:22px;z-index:18;display:flex;gap:9px}.quick-contact-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:24px;background:#fff;color:var(--navy);border:1px solid #dce5ef;box-shadow:0 8px 25px #10274620;font-size:12px;font-weight:700}.quick-contact-link.whatsapp{background:#16865f;color:#fff;border-color:#16865f}.quick-contact-link:hover{transform:translateY(-2px)}.form input[type=file]{padding:9px;background:#fff}
 .form input:focus-visible,.form textarea:focus-visible,.faq summary:focus-visible{outline:3px solid #82b2f5;outline-offset:2px}
 @media(max-width:650px){.quick-contact{right:12px;bottom:12px}.quick-contact-link{min-height:42px;padding:0 13px}.faq{padding-top:65px;padding-bottom:65px}.consent-row{grid-column:auto}}
+
+/* Readability pass: larger, clearer typography across all screen sizes */
+body{font-size:16px}
+nav{font-size:15px;gap:32px}
+.eyebrow,.section-label{font-size:12px;letter-spacing:1.7px}
+.hero-copy>p{font-size:18px;line-height:1.8;max-width:540px}
+.trust b{font-size:13px}.trust small{font-size:12px}
+.stats span{font-size:14px}
+.intro p,.section-head>p{font-size:16px;line-height:1.85}
+.lead{font-size:20px!important}
+.under-link,.text-link{font-size:15px}
+.service h3,.steps h3{font-size:20px}
+.service p,.steps p{font-size:15px;line-height:1.8}
+.service-no{font-size:12px}
+.contact-copy>p{font-size:16px;line-height:1.85}
+.contact-detail small{font-size:11px}.contact-detail a{font-size:15px}
+.form{padding:36px}
+.form-heading h3{font-size:23px}
+.form-heading p{font-size:13px}
+.form label{font-size:13px}
+.form input,.form textarea{font-size:15px;padding:14px}
+.form input::placeholder,.form textarea::placeholder{font-size:14px}
+.form-progress small{font-size:13px}
+.consent-row{font-size:13px!important}
+.privacy{font-size:12px;line-height:1.6}
+.form-status{font-size:14px}
+.button{font-size:15px;padding:17px 23px}
+footer{font-size:13px}
+@media(max-width:850px){
+ nav{font-size:14px;gap:18px}
+ .hero-copy>p{font-size:17px}
+ .section{padding:85px 6%}
+}
+@media(max-width:650px){
+ .hero h1{font-size:clamp(42px,11vw,52px);letter-spacing:-2px}
+ .hero-copy>p{font-size:17px;line-height:1.8}
+ .eyebrow,.section-label{font-size:11px}
+ .intro p,.section-head>p,.contact-copy>p{font-size:16px}
+ .service p,.steps p{font-size:15px}
+ .form{padding:24px 20px}
+ .form label{font-size:13px}
+ .form input,.form textarea{font-size:16px;padding:14px}
+ .form-heading h3{font-size:21px}
+ .privacy{font-size:12px}
+ footer{font-size:12px}
+}
