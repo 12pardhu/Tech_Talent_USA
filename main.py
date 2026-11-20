@@ -85,6 +85,26 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Tech Talent USA", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
+@app.get("/about", response_class=HTMLResponse)
+def about_page():
+    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+
+@app.get("/services", response_class=HTMLResponse)
+def services_page():
+    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+
+@app.get("/how-we-work", response_class=HTMLResponse)
+def process_page():
+    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+
+@app.get("/contact", response_class=HTMLResponse)
+def contact_page():
+    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy_page():
+    return (ROOT / "static" / "privacy.html").read_text(encoding="utf-8")
+
 @app.get("/", response_class=HTMLResponse)
 def home():
     return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
