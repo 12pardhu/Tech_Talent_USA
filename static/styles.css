@@ -241,3 +241,11 @@ a:focus-visible,button:focus-visible{outline:3px solid #78a8f0;outline-offset:3p
  .reveal-ready{transform:translateY(14px)}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal-ready{opacity:1;transform:none}}
+
+/* Candidate registration: clean progress indicator and India phone prefix */
+.form-progress small{display:none!important}
+.phone-field{display:flex;align-items:center;margin-top:7px;border:1px solid #dfe7f0;border-radius:4px;background:#fbfcfe;overflow:hidden}
+.phone-field:focus-within{border-color:#6b9de8;box-shadow:0 0 0 3px #2467d514}
+.phone-field>span{padding:0 0 0 12px;color:#42536a;font:600 12px "DM Sans";white-space:nowrap}
+.phone-field input.form-phone,.phone-field input{border:0!important;box-shadow:none!important;margin:0!important;min-width:0}
+.phone-field input:focus{outline:none}
