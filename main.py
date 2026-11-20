@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
@@ -57,6 +57,15 @@ def init_sqlite():
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )""")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_enquiries_created_at ON enquiries(created_at)")
+        existing = {row[1] for row in conn.execute("PRAGMA table_info(enquiries)").fetchall()}
+        for column, definition in (
+            ("whatsapp_number", "TEXT NOT NULL DEFAULT ''"),
+            ("resume_filename", "TEXT NOT NULL DEFAULT ''"),
+            ("resume_content_type", "TEXT NOT NULL DEFAULT ''"),
+            ("resume_data", "BLOB"),
+        ):
+            if column not in existing:
+                conn.execute(f"ALTER TABLE enquiries ADD COLUMN {column} {definition}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,6 +83,10 @@ async def lifespan(app: FastAPI):
         POOL.open()
         with POOL.connection() as conn:
             conn.execute(SCHEMA)
+            conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS whatsapp_number VARCHAR(30) NOT NULL DEFAULT ''")
+            conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_filename VARCHAR(255) NOT NULL DEFAULT ''")
+            conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_content_type VARCHAR(120) NOT NULL DEFAULT ''")
+            conn.execute("ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS resume_data BYTEA")
             conn.commit()
     elif not os.getenv("RENDER"):
         init_sqlite()
@@ -118,7 +131,7 @@ def health():
     }
 
 def deliver_notification(payload: dict):
-    """Send a formatted hiring enquiry receipt through Resend's HTTPS API."""
+    """Send candidate profile notification through Resend, attaching an uploaded resume."""
     import html
     import json
     from datetime import datetime, timezone
@@ -127,98 +140,60 @@ def deliver_notification(payload: dict):
 
     api_key = os.getenv("RESEND_API_KEY")
     recipient = os.getenv("CONTACT_EMAIL")
-    if not api_key:
-        logger.error("Resend notification skipped: RESEND_API_KEY is not configured")
-        return
-    if not recipient:
-        logger.error("Resend notification skipped: CONTACT_EMAIL is not configured")
+    if not api_key or not recipient:
+        logger.error("Candidate notification skipped: email configuration is incomplete")
         return
 
     labels = [
-        ("company", "Company"),
-        ("contact", "Contact Person"),
+        ("name", "Candidate Name"),
         ("email", "Email Address"),
         ("phone", "Phone Number"),
-        ("job_title", "Position / Job Title"),
-        ("skills", "Required Skills"),
-        ("experience", "Experience"),
-        ("location", "Job Location"),
-        ("positions", "Number of Positions"),
+        ("whatsapp_number", "WhatsApp Number"),
+        ("experience", "Years of Experience"),
+        ("location", "Current Location"),
+        ("skills", "Key Skills"),
+        ("resume_filename", "Resume"),
         ("message", "Additional Details"),
     ]
     rows = []
-    text_lines = [
-        "TECH TALENT USA",
-        "NEW HIRING ENQUIRY",
-        "Enquiry details submitted through the website",
-        "",
-    ]
+    text_lines = ["TECH TALENT USA", "NEW CANDIDATE PROFILE", ""]
     for key, label in labels:
         value = str(payload.get(key) or "Not provided")
-        safe_label = html.escape(label)
-        safe_value = html.escape(value).replace("\n", "<br>")
-        rows.append(
-            f'<tr><td style="padding:12px 14px;border-bottom:1px solid #e8edf3;'
-            f'color:#526174;font-size:13px;font-weight:600;width:36%;vertical-align:top;">'
-            f'{safe_label}</td><td style="padding:12px 14px;border-bottom:1px solid #e8edf3;'
-            f'color:#172033;font-size:14px;vertical-align:top;">{safe_value}</td></tr>'
-        )
         text_lines.append(f"{label}: {value}")
+        rows.append(
+            '<tr><td style="padding:12px 14px;border-bottom:1px solid #e8edf3;color:#526174;font-size:13px;font-weight:600;width:36%;vertical-align:top;">'
+            + html.escape(label) +
+            '</td><td style="padding:12px 14px;border-bottom:1px solid #e8edf3;color:#172033;font-size:14px;vertical-align:top;">'
+            + html.escape(value).replace("\n", "<br>") +
+            '</td></tr>'
+        )
 
     submitted_at = datetime.now(timezone.utc).strftime("%d %b %Y, %I:%M %p UTC")
-    safe_submitted_at = html.escape(submitted_at)
-    job_title = str(payload.get("job_title") or "Website enquiry")
-    safe_job_title = html.escape(job_title)
-    html_body = f"""\
-<!doctype html>
-<html>
-  <body style="margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172033;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e5eaf1;border-radius:12px;overflow:hidden;">
-      <tr>
-        <td style="padding:26px 30px;background:#10243a;color:#ffffff;">
-          <div style="font-size:12px;letter-spacing:2px;font-weight:700;color:#b9d4f2;">TECH TALENT USA</div>
-          <div style="font-size:24px;font-weight:700;margin-top:9px;">New Hiring Enquiry</div>
-          <div style="font-size:13px;color:#d4dfeb;margin-top:7px;">A new request has been submitted through your website.</div>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:24px 30px 10px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8fb;border:1px solid #e8edf3;border-radius:8px;">
-            <tr>
-              <td style="padding:14px 16px;">
-                <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Enquiry summary</div>
-                <div style="font-size:17px;font-weight:700;color:#10243a;margin-top:5px;">{safe_job_title}</div>
-                <div style="font-size:12px;color:#64748b;margin-top:6px;">Received: {safe_submitted_at}</div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:18px 30px 28px;">
-          <div style="font-size:15px;font-weight:700;color:#10243a;margin-bottom:10px;">Enquiry details</div>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e8edf3;border-radius:8px;border-collapse:separate;border-spacing:0;">
-            {''.join(rows)}
-          </table>
-          <p style="font-size:12px;line-height:1.6;color:#7b8797;margin:20px 0 0;">This is an automated notification from the Tech Talent USA website. You can reply directly to this email to contact the person who submitted the enquiry.</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:16px 30px;background:#f6f8fb;border-top:1px solid #e8edf3;font-size:11px;color:#7b8797;">Tech Talent USA · Hiring Enquiry Notification</td>
-      </tr>
-    </table>
-  </body>
-</html>"""
+    safe_name = html.escape(str(payload.get("name") or "Candidate"))
+    html_body = f"""<!doctype html>
+<html><body style="margin:0;padding:24px;background:#f3f6fa;font-family:Arial,Helvetica,sans-serif;color:#172033;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:680px;margin:0 auto;background:#fff;border:1px solid #e5eaf1;border-radius:12px;overflow:hidden;">
+<tr><td style="padding:26px 30px;background:#10243a;color:#fff;"><div style="font-size:12px;letter-spacing:2px;font-weight:700;color:#b9d4f2;">TECH TALENT USA</div><div style="font-size:24px;font-weight:700;margin-top:9px;">New Candidate Profile</div><div style="font-size:13px;color:#d4dfeb;margin-top:7px;">A candidate has submitted their profile through your website.</div></td></tr>
+<tr><td style="padding:24px 30px 10px;"><div style="font-size:17px;font-weight:700;color:#10243a;">{safe_name}</div><div style="font-size:12px;color:#64748b;margin-top:6px;">Received: {html.escape(submitted_at)}</div></td></tr>
+<tr><td style="padding:18px 30px 28px;"><div style="font-size:15px;font-weight:700;color:#10243a;margin-bottom:10px;">Candidate details</div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e8edf3;border-radius:8px;border-collapse:separate;border-spacing:0;">{''.join(rows)}</table>
+<p style="font-size:12px;line-height:1.6;color:#7b8797;margin:20px 0 0;">This is an automated candidate registration notification from the Tech Talent USA website.</p></td></tr>
+<tr><td style="padding:16px 30px;background:#f6f8fb;border-top:1px solid #e8edf3;font-size:11px;color:#7b8797;">Tech Talent USA · Candidate Profile Notification</td></tr></table></body></html>"""
+
     body = {
         "from": os.getenv("RESEND_FROM", "Tech Talent USA <onboarding@resend.dev>"),
         "to": [recipient],
-        "subject": f"New hiring enquiry: {job_title}",
+        "subject": f"New candidate profile: {payload.get('name', 'Website submission')}",
         "text": "\n".join(text_lines),
         "html": html_body,
     }
-    reply_to = payload.get("email")
-    if reply_to:
-        body["reply_to"] = reply_to
+    if payload.get("email"):
+        body["reply_to"] = payload["email"]
+    if payload.get("resume_content_base64") and payload.get("resume_filename"):
+        body["attachments"] = [{
+            "filename": payload["resume_filename"],
+            "content": payload["resume_content_base64"],
+        }]
 
     request = Request(
         "https://api.resend.com/emails",
@@ -231,29 +206,81 @@ def deliver_notification(payload: dict):
         method="POST",
     )
     try:
-        with urlopen(request, timeout=15) as response:
+        with urlopen(request, timeout=20) as response:
             result = json.loads(response.read().decode("utf-8"))
-            logger.info("Resend accepted hiring enquiry notification; message_id=%s", result.get("id"))
+            logger.info("Resend accepted candidate profile notification; message_id=%s", result.get("id"))
     except HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")[:1000]
-        logger.error("Resend API rejected hiring enquiry notification: status=%s response=%s", exc.code, detail)
+        logger.error("Resend rejected candidate notification: status=%s response=%s", exc.code, detail)
     except (URLError, TimeoutError, OSError):
-        logger.exception("Resend HTTPS request failed while sending hiring enquiry notification")
+        logger.exception("Resend HTTPS request failed while sending candidate notification")
     except Exception:
-        logger.exception("Unexpected error while sending hiring enquiry notification")
+        logger.exception("Unexpected error while sending candidate notification")
 
 @app.post("/api/enquiries", status_code=201)
-def submit_enquiry(data: Enquiry, background_tasks: BackgroundTasks):
-    values = data.model_dump()
-    values["email"] = str(data.email)
+async def submit_enquiry(
+    background_tasks: BackgroundTasks,
+    name: str = Form(..., min_length=2, max_length=120),
+    email: str = Form(..., max_length=254),
+    phone: str = Form(..., min_length=7, max_length=30),
+    whatsapp_number: str = Form("", max_length=30),
+    experience: str = Form("", max_length=80),
+    location: str = Form("", max_length=160),
+    skills: str = Form(..., min_length=2, max_length=1000),
+    message: str = Form("", max_length=3000),
+    resume: Optional[UploadFile] = File(None),
+):
+    import base64
+    import re
+
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email.strip()):
+        raise HTTPException(status_code=422, detail="Please enter a valid email address.")
+
+    resume_bytes = None
+    resume_filename = ""
+    resume_content_type = ""
+    if resume and resume.filename:
+        resume_filename = Path(resume.filename).name
+        extension = Path(resume_filename).suffix.lower()
+        if extension not in {".pdf", ".docx"}:
+            raise HTTPException(status_code=400, detail="Resume must be a PDF or DOCX file.")
+        resume_bytes = await resume.read(5 * 1024 * 1024 + 1)
+        if len(resume_bytes) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Resume file must be 5 MB or smaller.")
+        if extension == ".pdf":
+            if not resume_bytes.startswith(b"%PDF-"):
+                raise HTTPException(status_code=400, detail="The uploaded file does not appear to be a valid PDF.")
+            resume_content_type = "application/pdf"
+        else:
+            if not resume_bytes.startswith(b"PK\x03\x04"):
+                raise HTTPException(status_code=400, detail="The uploaded file does not appear to be a valid DOCX document.")
+            resume_content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+    values = {
+        "name": name.strip(),
+        "email": email.strip(),
+        "phone": phone.strip(),
+        "whatsapp_number": whatsapp_number.strip(),
+        "experience": experience.strip(),
+        "location": location.strip(),
+        "skills": skills.strip(),
+        "message": message.strip(),
+        "resume_filename": resume_filename,
+    }
 
     if POOL is not None:
         with POOL.connection() as conn:
             row = conn.execute(
                 """INSERT INTO enquiries
-                (company, contact, email, phone, job_title, skills, experience, location, positions, message)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-                tuple(values[k] for k in ("company","contact","email","phone","job_title","skills","experience","location","positions","message")),
+                (company, contact, email, phone, job_title, skills, experience, location,
+                 positions, message, whatsapp_number, resume_filename, resume_content_type, resume_data)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                (
+                    "Candidate profile", values["name"], values["email"], values["phone"],
+                    "Candidate registration", values["skills"], values["experience"],
+                    values["location"], 1, values["message"], values["whatsapp_number"],
+                    resume_filename, resume_content_type, resume_bytes,
+                ),
             ).fetchone()
             conn.commit()
             enquiry_id = row[0]
@@ -261,13 +288,22 @@ def submit_enquiry(data: Enquiry, background_tasks: BackgroundTasks):
         with sqlite3.connect(SQLITE_PATH) as conn:
             cur = conn.execute(
                 """INSERT INTO enquiries
-                (company, contact, email, phone, job_title, skills, experience, location, positions, message)
-                VALUES (?,?,?,?,?,?,?,?,?,?)""",
-                tuple(values[k] for k in ("company","contact","email","phone","job_title","skills","experience","location","positions","message")),
+                (company, contact, email, phone, job_title, skills, experience, location,
+                 positions, message, whatsapp_number, resume_filename, resume_content_type, resume_data)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "Candidate profile", values["name"], values["email"], values["phone"],
+                    "Candidate registration", values["skills"], values["experience"],
+                    values["location"], 1, values["message"], values["whatsapp_number"],
+                    resume_filename, resume_content_type, resume_bytes,
+                ),
             )
             enquiry_id = cur.lastrowid
     else:
-        raise HTTPException(status_code=503, detail="Enquiry service is temporarily unavailable. Please contact our team by email.")
+        raise HTTPException(status_code=503, detail="Profile submission is temporarily unavailable. Please try again later.")
 
-    background_tasks.add_task(deliver_notification, values)
-    return {"success": True, "enquiry_id": enquiry_id, "message": "Your hiring enquiry has been received."}
+    notification = dict(values)
+    if resume_bytes:
+        notification["resume_content_base64"] = base64.b64encode(resume_bytes).decode("ascii")
+    background_tasks.add_task(deliver_notification, notification)
+    return {"success": True, "enquiry_id": enquiry_id, "message": "Your profile has been received."}
