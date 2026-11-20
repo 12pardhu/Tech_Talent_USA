@@ -118,23 +118,62 @@ def health():
     }
 
 def deliver_notification(payload: dict):
-    import smtplib
-    from email.message import EmailMessage
-    host, user, password = os.getenv("SMTP_HOST"), os.getenv("SMTP_USER"), os.getenv("SMTP_PASSWORD")
-    if not (host and user and password):
+    """Send enquiry notifications through Resend's HTTPS API.
+
+    Render's free web services cannot send outbound SMTP, so this deliberately
+    avoids SMTP and uses HTTPS instead.
+    """
+    import json
+    from urllib.error import HTTPError, URLError
+    from urllib.request import Request, urlopen
+
+    api_key = os.getenv("RESEND_API_KEY")
+    recipient = os.getenv("CONTACT_EMAIL")
+    if not api_key:
+        logger.error("Resend notification skipped: RESEND_API_KEY is not configured")
         return
-    message = EmailMessage()
-    message["Subject"] = f"New hiring enquiry: {payload['job_title']}"
-    message["From"] = os.getenv("SMTP_FROM", user)
-    message["To"] = os.getenv("CONTACT_EMAIL", "sample@gmail.com")
-    message.set_content("\\n".join(f"{key}: {value}" for key, value in payload.items()))
+    if not recipient:
+        logger.error("Resend notification skipped: CONTACT_EMAIL is not configured")
+        return
+
+    sender = os.getenv("RESEND_FROM", "Tech Talent USA <onboarding@resend.dev>")
+    lines = [
+        "A new hiring enquiry was submitted through the Tech Talent USA website.",
+        "",
+    ]
+    lines.extend(f"{key.replace('_', ' ').title()}: {value}" for key, value in payload.items())
+    body = {
+        "from": sender,
+        "to": [recipient],
+        "subject": f"New hiring enquiry: {payload.get('job_title', 'Website enquiry')}",
+        "text": "\\n".join(lines),
+    }
+    reply_to = payload.get("email")
+    if reply_to:
+        body["reply_to"] = reply_to
+
+    request = Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "TechTalentUSA/1.0",
+        },
+        method="POST",
+    )
     try:
-        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", "587")), timeout=10) as server:
-            server.starttls()
-            server.login(user, password)
-            server.send_message(message)
+        with urlopen(request, timeout=15) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            logger.info("Resend accepted hiring enquiry notification; message_id=%s", result.get("id"))
+    except HTTPError as exc:
+        # Log the provider's response for diagnosis, never the API key.
+        detail = exc.read().decode("utf-8", errors="replace")[:1000]
+        logger.error("Resend API rejected hiring enquiry notification: status=%s response=%s", exc.code, detail)
+    except (URLError, TimeoutError, OSError):
+        logger.exception("Resend HTTPS request failed while sending hiring enquiry notification")
     except Exception:
-        logger.exception("Hiring enquiry notification could not be delivered")
+        logger.exception("Unexpected error while sending hiring enquiry notification")
 
 @app.post("/api/enquiries", status_code=201)
 def submit_enquiry(data: Enquiry, background_tasks: BackgroundTasks):
