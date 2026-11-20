@@ -127,10 +127,6 @@ def process_page():
 def contact_page():
     return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
 
-@app.get("/faq", response_class=HTMLResponse)
-def faq_page():
-    return (ROOT / "static" / "index.html").read_text(encoding="utf-8")
-
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy_page():
     return (ROOT / "static" / "privacy.html").read_text(encoding="utf-8")
