@@ -177,3 +177,47 @@ footer{font-size:13px}
 .how-work-register .how-work-closing{font-size:13px;color:#b9d4f2}
 .how-work-register .button{flex-shrink:0;background:#fff;color:#12345b}
 @media(max-width:760px){.how-work-hero{padding:58px 6% 44px}.how-work-steps{padding:48px 6%;grid-template-columns:1fr;gap:24px}.how-work-register{margin:0 6% 48px;padding:26px 22px;display:block}.how-work-register .button{margin-top:14px}.how-work-list li{padding:15px}}
+
+/* Immersive 3D Tech Talent USA hero scene */
+.hero-3d{position:relative;isolation:isolate;min-height:540px;display:grid;place-items:center;perspective:1100px;overflow:visible}
+.hero-scene{position:relative;width:min(100%,570px);height:530px;transform-style:preserve-3d;transition:transform .22s ease-out}
+.scene-glow{position:absolute;inset:7% 8% 5%;border-radius:50%;background:radial-gradient(ellipse,#c7dcff9c 0%,#e8f1ff82 43%,transparent 72%);filter:blur(14px);transform:translateZ(-80px)}
+.globe-shadow{position:absolute;width:310px;height:48px;left:50%;top:76%;transform:translateX(-50%) rotateX(72deg);border-radius:50%;background:#153d7528;filter:blur(17px)}
+.globe-3d{position:absolute;z-index:3;width:292px;height:292px;left:50%;top:47%;transform:translate(-50%,-50%) translateZ(45px);border-radius:50%;transform-style:preserve-3d;filter:drop-shadow(0 30px 34px #174d963d);animation:globe-hover 7s ease-in-out infinite}
+.globe-surface{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 32% 23%,#72b5ff 0%,#2874d6 27%,#1552a4 62%,#092d68 100%);box-shadow:inset -25px -24px 44px #041d4b88,inset 12px 12px 28px #b5dcff5c,0 0 0 1px #9cc8ff8c,0 0 0 12px #8abaff18,0 0 0 24px #8abaff10}
+.globe-grid{position:absolute;inset:-5%;border-radius:50%;background:repeating-radial-gradient(ellipse at 50% 50%,transparent 0 28px,#b9ddff55 29px 30px,transparent 31px 54px),repeating-linear-gradient(90deg,transparent 0 37px,#b9ddff4c 38px 39px,transparent 40px 76px);transform:rotate(-19deg) scaleX(.76);animation:grid-drift 28s linear infinite;mask-image:radial-gradient(circle,#000 57%,transparent 72%)}
+.globe-land{position:absolute;background:linear-gradient(145deg,#9ed8cb,#4aab9d 65%,#277c83);opacity:.82;filter:drop-shadow(0 2px 2px #062b5b55)}
+.land-one{width:100px;height:116px;left:26px;top:55px;clip-path:polygon(10% 5%,43% 0,58% 13%,80% 17%,89% 38%,72% 48%,78% 66%,58% 78%,48% 100%,32% 81%,26% 58%,9% 43%,0 22%)}
+.land-two{width:112px;height:92px;right:18px;bottom:46px;clip-path:polygon(7% 10%,35% 0,51% 15%,78% 9%,100% 31%,84% 50%,88% 73%,60% 100%,43% 80%,22% 83%,0 55%)}
+.globe-shine{position:absolute;inset:0;border-radius:50%;background:linear-gradient(125deg,#fff4 0%,transparent 35% 68%,#031b4c4d 100%);pointer-events:none}
+.globe-brand{position:absolute;z-index:2;inset:0;display:flex;align-items:center;justify-content:center;gap:7px;text-shadow:0 3px 12px #062b645c;transform:translateZ(18px)}
+.globe-brand strong{font:800 74px/1 Manrope,sans-serif;color:white;letter-spacing:-7px}
+.globe-brand span{font:800 20px Manrope,sans-serif;letter-spacing:2px;color:#8ff0d8;margin-top:23px}
+.globe-pin{position:absolute;z-index:3;width:10px;height:10px;border:2px solid white;border-radius:50%;background:#5bf0d0;box-shadow:0 0 0 5px #5bf0d033,0 0 18px #5bf0d0}
+.pin-one{top:25%;left:31%}.pin-two{top:46%;right:20%}.pin-three{bottom:25%;left:56%}
+.globe-orbit{position:absolute;z-index:2;left:50%;top:47%;width:440px;height:178px;border:1px solid #5d9ce88c;border-radius:50%;transform:translate(-50%,-50%) rotate(-24deg) translateZ(90px);box-shadow:0 0 18px #9ac4ff3b;pointer-events:none}
+.orbit-b{width:395px;height:235px;transform:translate(-50%,-50%) rotate(62deg) translateZ(-20px);border-color:#8ab9ef6e;border-style:dashed;animation:orbit-turn 24s linear infinite}
+.scene-particle{position:absolute;z-index:4;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px #4b91e52b,0 0 18px #4b91e5;animation:particle-float 5s ease-in-out infinite}
+.particle-one{left:18%;top:30%}.particle-two{right:15%;top:61%;animation-delay:-2s}.particle-three{left:32%;bottom:15%;width:5px;height:5px;animation-delay:-3.5s}
+.insight-card{position:absolute;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 16px;background:#ffffffed;border:1px solid #dce8f8;border-radius:14px;box-shadow:0 18px 44px #1d47751c,0 3px 8px #1d47750b;backdrop-filter:blur(14px);animation:card-hover 6s ease-in-out infinite}
+.insight-card b,.insight-chip b{display:block;color:#142e50;font:700 12px Manrope,sans-serif;white-space:nowrap}
+.insight-card small,.insight-chip small{display:block;color:#73839a;font-size:10px;margin-top:4px;white-space:nowrap}
+.insight-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#e9f1ff;color:#286dd0;font-size:18px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#26c99a;box-shadow:0 0 0 4px #26c99a22;margin-left:8px}
+.insight-top{right:-1%;top:9%}.insight-bottom{left:-3%;bottom:18%;animation-delay:-3s}
+.people-icon{background:#e4f8f2;color:#169d78}
+.insight-chip{position:absolute;z-index:4;display:flex;align-items:center;gap:10px;padding:10px 13px;border:1px solid #dce8f8;border-radius:12px;background:#ffffffd9;box-shadow:0 12px 30px #214c7c16;backdrop-filter:blur(10px);animation:card-hover 7s ease-in-out infinite}
+.chip-mark{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:#edf4ff;color:#286dd0;font:800 10px Manrope}
+.insight-chip b{font-size:10px}.insight-chip small{font-size:9px}
+.chip-left{left:2%;top:19%;animation-delay:-1s}.chip-right{right:0;bottom:14%;animation-delay:-4s}
+.scene-caption{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);font:700 9px Manrope,sans-serif;letter-spacing:2px;color:#7890ad;white-space:nowrap;display:flex;align-items:center;gap:9px}
+.scene-caption span{width:18px;height:1px;background:#5d9ce8}
+@keyframes globe-hover{0%,100%{transform:translate(-50%,-50%) translateZ(45px) rotateY(-5deg) rotateX(2deg)}50%{transform:translate(-50%,-52%) translateZ(65px) rotateY(5deg) rotateX(-2deg)}}
+@keyframes grid-drift{from{background-position:0 0,0 0}to{background-position:0 0,76px 0}}
+@keyframes orbit-turn{from{transform:translate(-50%,-50%) rotate(62deg) translateZ(-20px)}to{transform:translate(-50%,-50%) rotate(422deg) translateZ(-20px)}}
+@keyframes particle-float{0%,100%{translate:0 0}50%{translate:0 -13px}}
+@keyframes card-hover{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@media(max-width:1050px){.hero-3d{min-height:480px}.hero-scene{transform:scale(.88);transform-origin:center}.insight-top{right:0}.chip-left{left:0}}
+@media(max-width:750px){.hero-3d{min-height:410px;margin:0 -5%}.hero-scene{transform:scale(.72);transform-origin:center}.insight-chip{display:none}.scene-caption{bottom:1%}}
+@media(max-width:480px){.hero-3d{min-height:340px;margin:0 -10%}.hero-scene{transform:scale(.59)}.insight-top{right:-3%;top:8%}.insight-bottom{left:-2%;bottom:13%}}
+@media(prefers-reduced-motion:reduce){.globe-3d,.globe-grid,.orbit-b,.scene-particle,.insight-card,.insight-chip{animation:none!important}.hero-scene{transition:none!important}}
