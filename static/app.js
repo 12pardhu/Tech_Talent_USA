@@ -30,21 +30,21 @@ form?.addEventListener('submit',async e=>{
   e.preventDefault();
   const status=document.getElementById('form-status');
   const button=form.querySelector('button');
+  const originalButton=button.innerHTML;
   button.disabled=true;
-  button.textContent='Sending…';
+  button.textContent='Submitting…';
   status.textContent='';
-  const data=Object.fromEntries(new FormData(form).entries());
-  data.positions=Number(data.positions);
+  const data=new FormData(form);
   try{
-    const response=await fetch('/api/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const response=await fetch('/api/enquiries',{method:'POST',body:data});
     const result=await response.json();
     if(!response.ok)throw new Error(typeof result.detail==='string'?result.detail:'Please check the form and try again.');
-    status.textContent='Thank you! Your hiring enquiry has been received.';
+    status.textContent='Thank you! Your profile has been submitted successfully.';
     form.reset();
   }catch(err){
-    status.textContent=err.message||'Something went wrong. Please contact our team.';
+    status.textContent=err.message||'Something went wrong. Please try again.';
   }finally{
     button.disabled=false;
-    button.innerHTML='Send hiring enquiry <span>→</span>';
+    button.innerHTML=originalButton;
   }
 });
