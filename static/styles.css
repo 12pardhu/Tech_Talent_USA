@@ -271,3 +271,20 @@ a:focus-visible,button:focus-visible{outline:3px solid #78a8f0;outline-offset:3p
 .next-step-contact a{font-size:12px;color:#fff;overflow-wrap:anywhere}
 .next-step-closing{margin:26px 0 0;color:var(--navy);font:700 18px Manrope}
 @media(max-width:650px){.next-step-content{grid-template-columns:1fr}.next-step-list,.next-step-cta{padding:23px}.next-step-intro h2{font-size:36px}}
+
+/* Final career overview refinements */
+.next-step-list ul{list-style:none;padding:0;margin:0;display:grid;gap:18px}
+.next-step-list ul li{position:relative;padding-left:24px;font-size:13px;line-height:1.65;color:var(--ink)}
+.next-step-list ul li:before{content:"";position:absolute;left:0;top:.58em;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px var(--sky)}
+.next-step-profile-photo{width:104px;height:104px;margin:0 0 22px;border:3px solid #ffffff45;border-radius:50%;overflow:hidden;box-shadow:0 8px 25px #0003}
+.next-step-profile-photo img{width:100%;height:100%;object-fit:cover;object-position:center 25%;display:block}
+.art-core{isolation:isolate;overflow:hidden}
+.art-core:before{content:"";position:absolute;inset:8px;border-radius:50%;border:2px solid #ffffff8c;border-left-color:transparent;border-right-color:#ffffff35;box-shadow:inset 12px 0 22px #ffffff20,inset -16px 0 24px #071f4a55;animation:globe-spin 5s linear infinite;z-index:0}
+.art-core:after{content:"";position:absolute;inset:10px 48px;border:1px solid #ffffff72;border-radius:50%;transform:rotate(18deg);animation:globe-meridian 5s ease-in-out infinite alternate;z-index:0}
+.core-ring{z-index:1;inset:5px;border-color:#ffffff45}
+.core-text{z-index:2;position:relative;text-shadow:0 2px 12px #09234c55}
+.orbit{animation:orbit-drift 18s linear infinite}
+@keyframes globe-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes globe-meridian{from{transform:rotateY(0deg) scaleX(.72)}to{transform:rotateY(180deg) scaleX(1)}}
+@keyframes orbit-drift{from{transform:rotate(-32deg)}to{transform:rotate(328deg)}}
+@media(prefers-reduced-motion:reduce){.art-core:before,.art-core:after,.orbit{animation:none!important}}
