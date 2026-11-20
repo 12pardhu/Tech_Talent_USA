@@ -1,3 +1,18 @@
+// Remove external campaign/tracking parameters from the visible address bar.
+// Keep functional query parameters and the current page/section intact.
+const cleanUrl = new URL(window.location.href);
+let removedTrackingParams = false;
+for (const key of [...cleanUrl.searchParams.keys()]) {
+  if (/^utm_/i.test(key) || ['gclid','fbclid','msclkid'].includes(key.toLowerCase())) {
+    cleanUrl.searchParams.delete(key);
+    removedTrackingParams = true;
+  }
+}
+if (removedTrackingParams) {
+  const cleanPath = cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : '') + cleanUrl.hash;
+  window.history.replaceState({}, document.title, cleanPath);
+}
+
 const menu=document.getElementById('menu');
 const nav=document.querySelector('nav');
 menu?.addEventListener('click',()=>nav.classList.toggle('open'));
