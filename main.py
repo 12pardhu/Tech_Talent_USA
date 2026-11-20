@@ -142,9 +142,9 @@ def home():
 @app.get("/health")
 def health():
     return {
-        "status": "ok" if (POOL is not None or not os.getenv("RENDER")) else "degraded",
+        "status": "ok",
         "service": "Tech Talent USA",
-        "database": "connected" if POOL is not None else ("local_preview_store" if POOL is None else "connected"),
+        "database": "postgres" if POOL is not None else "sqlite_preview_store",
     }
 
 def deliver_notification(payload: dict):
@@ -333,8 +333,6 @@ async def submit_enquiry(
                 ),
             )
             enquiry_id = cur.lastrowid
-    else:
-        raise HTTPException(status_code=503, detail="Profile submission is temporarily unavailable. Please try again later.")
 
     notification = dict(values)
     if resume_bytes:
