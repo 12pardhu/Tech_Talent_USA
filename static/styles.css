@@ -79,3 +79,60 @@ footer{font-size:13px}
  .privacy{font-size:12px}
  footer{font-size:12px}
 }
+
+
+/* Phase 2 refinement: slightly tighter sizing while preserving the approved blue-and-white theme. */
+.header{height:76px}
+.hero{min-height:570px;padding-top:68px;padding-bottom:56px}
+.hero h1{font-size:clamp(40px,4.7vw,62px);letter-spacing:-2.4px}
+.hero-copy>p{font-size:16px;line-height:1.75}
+.hero-art{transform:scale(.94)}
+.section{padding-top:90px;padding-bottom:90px}
+.intro h2,.section h2{font-size:44px}
+.service{min-height:230px;padding:26px 24px 30px}
+.service h3,.steps h3{font-size:18px}
+.service p,.steps p{font-size:14px;line-height:1.7}
+.form{padding:30px}
+.form-heading h3{font-size:21px}
+.form label{font-size:12px}
+.form input,.form textarea{font-size:14px;padding:12px}
+.button{font-size:14px;padding:15px 21px}
+.stats{padding-top:23px;padding-bottom:23px}
+@media(max-width:850px){.hero{min-height:540px}.section{padding-top:76px;padding-bottom:76px}.intro h2,.section h2{font-size:40px}}
+@media(max-width:650px){.header{height:68px}.hero{padding-top:48px;padding-bottom:44px}.hero h1{font-size:clamp(39px,10vw,48px)}.hero-art{transform:scale(.78);margin-left:-15px;margin-right:-15px}.section{padding:66px 6%}.intro h2,.section h2{font-size:35px}.service{padding:24px;min-height:190px}.form{padding:22px 18px}.form input,.form textarea{font-size:15px;padding:13px}.button{font-size:14px;padding:14px 18px}}
+
+/* Personal About page: profile details live here, not on the public homepage. */
+.profile-hero{background:linear-gradient(120deg,#f5f9ff,#fff 65%,#edf4ff);padding:76px 9% 58px}
+.profile-hero .eyebrow{margin:0 0 16px}
+.profile-hero h1{font:800 clamp(38px,4.5vw,58px)/1.1 Manrope,sans-serif;letter-spacing:-2px;color:var(--navy);max-width:800px;margin:0 0 18px}
+.profile-hero h1 em{font-style:normal;color:var(--blue)}
+.profile-hero p{max-width:760px;font-size:16px;line-height:1.8;color:var(--muted)}
+.profile-metrics{display:grid;grid-template-columns:repeat(4,1fr);background:var(--navy);padding:22px 9%;color:white}
+.profile-metrics div{padding:8px 18px;border-right:1px solid #ffffff28}
+.profile-metrics div:last-child{border:0}
+.profile-metrics strong,.profile-metrics span{display:block}
+.profile-metrics strong{font:800 25px Manrope;color:var(--mint)}
+.profile-metrics span{font-size:12px;color:#c3d0e0;margin-top:5px}
+.profile-section{padding:76px 9%}
+.profile-section h2{font:800 38px/1.15 Manrope,sans-serif;letter-spacing:-1.5px;color:var(--navy);margin:14px 0 24px}
+.profile-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:8%;align-items:start}
+.profile-copy p,.profile-section p{font-size:15px;line-height:1.85;color:var(--muted)}
+.profile-copy p:first-child{color:var(--navy);font-size:17px;font-weight:600}
+.profile-band{background:#f5f8fc}
+.profile-role{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:28px}
+.profile-role h2{margin:8px 0}
+.profile-current{font-size:11px;color:#16865f;background:#e4f7ef;padding:9px 13px;border-radius:20px;white-space:nowrap;font-weight:700}
+.profile-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.profile-card{background:#fff;border:1px solid var(--line);padding:24px;border-radius:5px}
+.profile-card>span{font-size:11px;color:var(--blue);font-weight:700}
+.profile-card h3{font:700 17px Manrope;color:var(--navy);margin:20px 0 10px}
+.profile-card p{font-size:13px;line-height:1.75;margin:0}
+.profile-skills{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+.profile-skills div{padding:17px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--navy);font-weight:600}
+.profile-skills span{font-size:10px;color:var(--blue);margin-right:13px}
+.profile-contact{background:var(--navy);color:#fff;padding:58px 9%;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.profile-contact h2{font:800 32px Manrope;color:white;margin:0 0 10px}
+.profile-contact p{color:#c3d0e0;font-size:14px;line-height:1.7;margin:0}
+.profile-contact .button{white-space:nowrap}
+@media(max-width:750px){.profile-hero{padding:56px 6% 42px}.profile-section{padding:62px 6%}.profile-metrics{grid-template-columns:1fr 1fr;padding:18px 6%;gap:8px}.profile-metrics div:nth-child(2){border:0}.profile-grid{grid-template-columns:1fr;gap:10px}.profile-cards{grid-template-columns:1fr}.profile-contact{padding:44px 6%;display:block}.profile-contact .button{margin-top:22px}.profile-section h2{font-size:33px}}
+@media(max-width:480px){.profile-skills{grid-template-columns:1fr}.profile-role{align-items:flex-start;flex-direction:column}.profile-contact h2{font-size:28px}}
