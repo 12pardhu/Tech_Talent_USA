@@ -156,20 +156,6 @@ footer{font-size:13px}
 .company-logo svg{display:block;width:auto;max-width:150px;height:34px;overflow:visible}.company-logo svg text{dominant-baseline:auto}@media(max-width:650px){.company-logo svg{max-width:120px;height:29px}}
 
 
-/* Four-step candidate registration progress */
-.form-step{padding:18px 0 20px;border-top:1px solid var(--line)}
-.form-step-heading{display:flex;align-items:center;gap:12px;margin-bottom:15px}
-.form-step-heading>span{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--sky);color:var(--blue);font:700 11px Manrope,sans-serif}
-.form-step-heading>div{flex:1}
-.form-step-heading h4{font:700 14px Manrope,sans-serif;color:var(--navy);margin:0 0 3px}
-.form-step-heading p{font-size:11px;color:var(--muted);margin:0}
-.form-step-heading>b{font:700 11px Manrope,sans-serif;color:var(--muted)}
-.form-step.is-complete .form-step-heading>span{background:#e4f7ef;color:#16865f}
-.form-step.is-complete .form-step-heading>b{color:#16865f}
-.form-progress{margin:2px 0 12px}
-@media(max-width:650px){.form-step{padding:15px 0 17px}.form-step-heading{gap:9px}.form-step-heading h4{font-size:13px}}
-
-
 /* Dedicated How We Work page */
 .how-work-page{overflow:hidden}
 .how-work-hero{padding:82px 9% 62px;background:radial-gradient(circle at 88% 12%,rgba(64,133,229,.12),transparent 30%),linear-gradient(120deg,#f5f9ff,#fff 66%,#edf4ff)}
